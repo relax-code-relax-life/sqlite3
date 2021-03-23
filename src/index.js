@@ -70,7 +70,7 @@ class DB {
     // param: { columnName: '123' }
     // pattern matching: 模糊查询。 pattern参数为string[]，模糊查询的列。
     // excludeColumns: string[], select排除的列
-    select(tbName, param, excludeColumns = [], pattern = [],) {
+    generateSelectSql(tbName, param, excludeColumns = [], pattern = []) {
         const logger = this.logger;
         // param 传入null或undefined，视为搜索全部
         const tbColumns = this.tableSchema[tbName];
@@ -79,9 +79,6 @@ class DB {
 
         let values = {};
         let sql = `select ${selectColumns.join(',')} from ${tbName}`;
-
-        const defer = utils.defer();
-
         if (param) {
 
             /** @type {String[]} **/
@@ -90,7 +87,7 @@ class DB {
 
             if (paramColumns.length === 0) {
                 logger.error('[select] has no valid prop in param:', param, ';table:', tbName);
-                return defer.reject(new Error('SQL ERROR: has no valid prop in param'));
+                throw new Error('SQL ERROR: has no valid prop in param');
 
             }
             sql += ' where ' + paramColumns.map(key => {
@@ -104,9 +101,26 @@ class DB {
                 values['$' + key] = param[key];
             })
         }
+        return {
+            sql,
+            param: values
+        }
+    }
 
-        logger.debug('[select] sql:', sql, `,sqlValues:`, values);
-        this.db.all(sql, values, wrapNodeCb(defer));
+    select(tbName, param, excludeColumns = [], pattern = []) {
+        const logger = this.logger;
+
+        const defer = utils.defer();
+
+        let sqlObj;
+        try {
+            sqlObj = this.generateSelectSql(tbName, param, excludeColumns, pattern);
+        } catch (e) {
+            return defer.reject(e);
+        }
+
+        logger.debug('[select] sql:', sqlObj.sql, `,sqlValues:`, sqlObj.param);
+        this.db.all(sqlObj.sql, sqlObj.param, wrapNodeCb(defer));
         return defer.promise;
     }
 
@@ -146,6 +160,24 @@ class DB {
                     defer.resolve(row.id);
                 })
             } else defer.resolve(lastID);
+        })
+        return defer.promise;
+    }
+
+    each(tbName, eachCallback, param, excludeColumns = [], pattern = []) {
+        const logger = this.logger;
+        const defer = utils.defer();
+        let sqlObj;
+        try {
+            sqlObj = this.generateSelectSql(tbName, eachCallback, param, excludeColumns, pattern);
+        } catch (e) {
+            defer.reject(e);
+            return defer.promise;
+        }
+        logger.debug('[each] sql:', sqlObj.sql, ',sqlValues:', sqlObj.param);
+        this.db.each(sqlObj.sql, sqlObj.param, eachCallback, (error, retrieveLength) => {
+            if (error) defer.reject(error);
+            else defer.resolve(retrieveLength);
         })
         return defer.promise;
     }
