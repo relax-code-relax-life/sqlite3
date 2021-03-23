@@ -169,7 +169,7 @@ class DB {
         const defer = utils.defer();
         let sqlObj;
         try {
-            sqlObj = this.generateSelectSql(tbName, eachCallback, param, excludeColumns, pattern);
+            sqlObj = this.generateSelectSql(tbName, param, excludeColumns, pattern);
         } catch (e) {
             defer.reject(e);
             return defer.promise;
