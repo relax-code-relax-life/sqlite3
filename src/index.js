@@ -182,6 +182,15 @@ class DB {
         return defer.promise;
     }
 
+    close() {
+        return new Promise((resolve, reject) => {
+            this.db.close((err) => {
+                if (err) reject(err);
+                else resolve();
+            })
+        })
+    }
+
     genRandom() {
         return randomBytes(8).then((buffer) => buffer.toString('hex'));
     }
