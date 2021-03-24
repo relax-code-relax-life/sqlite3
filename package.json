@@ -1,5 +1,5 @@
 {
-  "name": "sqlite3",
+  "name": "relax-sqlite3",
   "version": "1.0.0",
   "description": "",
   "main": "src/index.js",
