@@ -47,7 +47,7 @@ class DB {
             this.db = new sqlite.Database(dbFilePath, sqlite.OPEN_READWRITE, (err) => {
                 if (err) {
                     logger.error('[init] new sqlite3 error/', err.message, '/json:', JSON.stringify(err));
-                    defer.reject();
+                    defer.reject(err);
                 } else defer.resolve();
             });
 
