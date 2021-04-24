@@ -1,0 +1,10 @@
+{
+  "entryPoints": [
+    "./src/index.ts"
+  ],
+  "out": "doc",
+  "plugin": [
+    "typedoc-plugin-markdown"
+  ],
+  "excludeInternal": true
+}

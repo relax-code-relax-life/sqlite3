@@ -22,15 +22,22 @@ interface IDbParam {
     logger?: LoggerType;
 }
 declare class DB {
+    /** @internal */
     dbFilePath: string;
+    /** @internal */
     initSqlFiles: string[];
+    /** @internal */
     tableSchema: TableSchemaType;
+    /** @internal */
     isDev: boolean;
+    /** @internal */
     logger: LoggerType;
+    /** @internal */
     db: Database;
     constructor({ dbFilePath, initSqlFiles, tableSchema, isDev, logger }: IDbParam);
     init(): Promise<unknown>;
     modifySchema(schema: TableSchemaType): void;
+    /** @internal */
     generateSelectSql(tbName: string, param?: RowType, excludeColumns?: string[], pattern?: string[], suffix?: string): {
         sql: string;
         param: SqlParam;
@@ -48,6 +55,7 @@ declare class DB {
      * @param param
      * @param excludeColumns
      * @param pattern
+     * @param suffix
      * @return Promise<number> - 返回retrieveLength
      */
     each(tbName: string, eachCallback: EachCallbackType, param?: RowType, excludeColumns?: string[], pattern?: string[], suffix?: string): Promise<number>;

@@ -26,11 +26,17 @@ interface IDbParam {
 }
 
 class DB {
+    /** @internal */
     dbFilePath: string
+    /** @internal */
     initSqlFiles: string[]
+    /** @internal */
     tableSchema: TableSchemaType
+    /** @internal */
     isDev: boolean
+    /** @internal */
     logger: LoggerType
+    /** @internal */
     db: Database;
 
     constructor({
@@ -94,6 +100,7 @@ class DB {
     // pattern matching: 模糊查询。 pattern参数为string[]，模糊查询的列。
     // excludeColumns: string[], select排除的列
     // suffix: 添加在where从句之后的内容，如果没有where从句就是直接添加在from从句之后，例如group by/ order/ limit
+    /** @internal */
     generateSelectSql(tbName: string,
                       param?: RowType,
                       excludeColumns: string[] = [],
@@ -165,6 +172,7 @@ class DB {
      * @param param
      * @param excludeColumns
      * @param pattern
+     * @param suffix
      * @return Promise<number> - 返回retrieveLength
      */
     async each(tbName: string,
