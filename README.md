@@ -17,10 +17,8 @@ const db = new DB({
     }
 });
 
-db.init().then(async () => {
-    const rows = db.select('table1');
-    console.log(rows);
-})
+const rows = db.select('table1');
+console.log(rows);
 ```
 
 # Class DB
