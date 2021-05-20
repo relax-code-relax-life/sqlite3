@@ -14,7 +14,6 @@
 - [each](export_.md#each)
 - [eachBySql](export_.md#eachbysql)
 - [genRandom](export_.md#genrandom)
-- [init](export_.md#init)
 - [insert](export_.md#insert)
 - [insertBySql](export_.md#insertbysql)
 - [modifySchema](export_.md#modifyschema)
@@ -35,23 +34,23 @@
 
 **Returns:** [*export=*](export_.md)
 
-Defined in: [index.ts:40](https://github.com/relax-code-relax-life/sqlite3/blob/9313873/src/index.ts#L40)
+Defined in: [index.ts:46](https://github.com/relax-code-relax-life/sqlite3/blob/b563366/src/index.ts#L46)
 
 ## Methods
 
 ### close
 
-▸ **close**(): *Promise*<unknown\>
+▸ **close**(): *void*
 
-**Returns:** *Promise*<unknown\>
+**Returns:** *void*
 
-Defined in: [index.ts:247](https://github.com/relax-code-relax-life/sqlite3/blob/9313873/src/index.ts#L247)
+Defined in: [index.ts:241](https://github.com/relax-code-relax-life/sqlite3/blob/b563366/src/index.ts#L241)
 
 ___
 
 ### each
 
-▸ **each**(`tbName`: *string*, `eachCallback`: EachCallbackType, `param?`: RowType, `excludeColumns?`: *string*[], `pattern?`: *string*[], `suffix?`: *string*): *Promise*<number\>
+▸ **each**(`tbName`: *string*, `eachCallback`: EachCallbackType, `param?`: RowType, `excludeColumns?`: *string*[], `pattern?`: *string*[], `suffix?`: *string*): *Promise*<void\>
 
 #### Parameters:
 
@@ -64,29 +63,31 @@ ___
 | `pattern` | *string*[] | [] |
 | `suffix` | *string* | '' |
 
-**Returns:** *Promise*<number\>
+**Returns:** *Promise*<void\>
 
 Promise<number> - 返回retrieveLength
 
-Defined in: [index.ts:178](https://github.com/relax-code-relax-life/sqlite3/blob/9313873/src/index.ts#L178)
+Defined in: [index.ts:167](https://github.com/relax-code-relax-life/sqlite3/blob/b563366/src/index.ts#L167)
 
 ___
 
 ### eachBySql
 
-▸ **eachBySql**(`sql`: *string*, `param`: SqlParam, `eachCallback`: EachCallbackType): *Promise*<number\>
+▸ **eachBySql**(`sql`: *string*, `param`: *undefined* \| RowType, `eachCallback`: EachCallbackType): *Promise*<void\>
+
+报错会导致遍历不继续进行，并返回rejected promise.
 
 #### Parameters:
 
 | Name | Type |
 | :------ | :------ |
 | `sql` | *string* |
-| `param` | SqlParam |
+| `param` | *undefined* \| RowType |
 | `eachCallback` | EachCallbackType |
 
-**Returns:** *Promise*<number\>
+**Returns:** *Promise*<void\>
 
-Defined in: [index.ts:188](https://github.com/relax-code-relax-life/sqlite3/blob/9313873/src/index.ts#L188)
+Defined in: [index.ts:183](https://github.com/relax-code-relax-life/sqlite3/blob/b563366/src/index.ts#L183)
 
 ___
 
@@ -96,23 +97,13 @@ ___
 
 **Returns:** *Promise*<string\>
 
-Defined in: [index.ts:256](https://github.com/relax-code-relax-life/sqlite3/blob/9313873/src/index.ts#L256)
-
-___
-
-### init
-
-▸ **init**(): *Promise*<unknown\>
-
-**Returns:** *Promise*<unknown\>
-
-Defined in: [index.ts:63](https://github.com/relax-code-relax-life/sqlite3/blob/9313873/src/index.ts#L63)
+Defined in: [index.ts:245](https://github.com/relax-code-relax-life/sqlite3/blob/b563366/src/index.ts#L245)
 
 ___
 
 ### insert
 
-▸ **insert**(`tbName`: *string*, `param`: RowType, `needId?`: *boolean*): *Promise*<number\>
+▸ **insert**(`tbName`: *string*, `param`: RowType, `needId?`: *boolean*): *any*
 
 #### Parameters:
 
@@ -122,30 +113,30 @@ ___
 | `param` | RowType | - |
 | `needId` | *boolean* | false |
 
-**Returns:** *Promise*<number\>
+**Returns:** *any*
 
-Defined in: [index.ts:201](https://github.com/relax-code-relax-life/sqlite3/blob/9313873/src/index.ts#L201)
+Defined in: [index.ts:196](https://github.com/relax-code-relax-life/sqlite3/blob/b563366/src/index.ts#L196)
 
 ___
 
 ### insertBySql
 
-▸ **insertBySql**(`tbName`: *string*, `sql`: *string*, `param`: SqlParam, `needId?`: *boolean*): *Promise*<number\>
+▸ **insertBySql**(`tbName`: *string*, `sql`: *string*, `param`: RowType, `needId?`: *boolean*): *any*
 
 #### Parameters:
 
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `tbName` | *string* |  |
-| `sql` | *string* |  |
-| `param` | SqlParam | {$columnName:123} 这里param是直接传给sqlite的，是sql的参数，需要添加$前缀 |
-| `needId?` | *boolean* |  |
+| Name | Type |
+| :------ | :------ |
+| `tbName` | *string* |
+| `sql` | *string* |
+| `param` | RowType |
+| `needId?` | *boolean* |
 
-**Returns:** *Promise*<number\>
+**Returns:** *any*
 
-Promise<number> - 如果needId为true，返回id字段，如果needId为false,返回rowid字段
+- 如果needId为true，返回id字段，如果needId为false,返回rowid字段
 
-Defined in: [index.ts:221](https://github.com/relax-code-relax-life/sqlite3/blob/9313873/src/index.ts#L221)
+Defined in: [index.ts:215](https://github.com/relax-code-relax-life/sqlite3/blob/b563366/src/index.ts#L215)
 
 ___
 
@@ -161,7 +152,7 @@ ___
 
 **Returns:** *void*
 
-Defined in: [index.ts:95](https://github.com/relax-code-relax-life/sqlite3/blob/9313873/src/index.ts#L95)
+Defined in: [index.ts:87](https://github.com/relax-code-relax-life/sqlite3/blob/b563366/src/index.ts#L87)
 
 ___
 
@@ -181,21 +172,21 @@ ___
 
 **Returns:** *Promise*<RowType[]\>
 
-Defined in: [index.ts:145](https://github.com/relax-code-relax-life/sqlite3/blob/9313873/src/index.ts#L145)
+Defined in: [index.ts:136](https://github.com/relax-code-relax-life/sqlite3/blob/b563366/src/index.ts#L136)
 
 ___
 
 ### selectBySql
 
-▸ **selectBySql**(`sql`: *string*, `param`: SqlParam): *Promise*<RowType[]\>
+▸ **selectBySql**(`sql`: *string*, `param?`: RowType): *Promise*<RowType[]\>
 
 #### Parameters:
 
-| Name | Type | Description |
-| :------ | :------ | :------ |
-| `sql` | *string* |  |
-| `param` | SqlParam | { [$paramName: string]: any } 这里param是直接传给sqlite.run的，是sql的参数，需要添加$前缀 |
+| Name | Type |
+| :------ | :------ |
+| `sql` | *string* |
+| `param?` | RowType |
 
 **Returns:** *Promise*<RowType[]\>
 
-Defined in: [index.ts:160](https://github.com/relax-code-relax-life/sqlite3/blob/9313873/src/index.ts#L160)
+Defined in: [index.ts:151](https://github.com/relax-code-relax-life/sqlite3/blob/b563366/src/index.ts#L151)

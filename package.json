@@ -1,6 +1,6 @@
 {
   "name": "relax-sqlite3",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -8,13 +8,14 @@
     "aliyunInstall": "npm install --unsafe-perm",
     "build": "npm run tsc && npm run typedoc",
     "tsc": "tsc",
-    "typedoc": "typedoc"
+    "typedoc": "typedoc",
+    "test": "node test/index.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "relax-utils": "^1.0.67",
-    "sqlite3": "^5.0.2"
+    "better-sqlite3": "^7.4.0",
+    "relax-utils": "^1.0.69"
   },
   "devDependencies": {
     "@tsconfig/node14": "^1.0.0",

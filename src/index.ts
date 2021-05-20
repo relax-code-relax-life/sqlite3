@@ -1,9 +1,22 @@
-import sqlite3, {Database, RunResult} from 'sqlite3';
+// import sqlite3, {Database, RunResult} from 'sqlite3';
+const Database = require('better-sqlite3');
 import {execSync} from 'child_process';
 import utils, {Defer} from 'relax-utils';
 import crypto from 'crypto';
 
 const randomBytes = utils.promisify(crypto.randomBytes);
+
+// better-sqlite3有个坑，可以理解为，在better-sqlite3中，优先把number视为real,然后再存到sqlite
+// 假设: create table topic(id text);
+// 则，db.prepare('insert topic(id) values($id)').run({id:666})，
+// 实际保存的值是 "666.0"
+// 所以需要额外注意表中每个字段的类型。
+// https://github.com/JoshuaWise/better-sqlite3/issues/627
+
+// 还有一个参数坑:
+// 当sql中没有参数时，statement相关的方法也不能传参数，否则会报错： RangeError: Too many parameter values were provided
+// 例如：db.prepare('select * from topic').iterate(undefined) 会报错
+// 要么不穿任何参数，要么写成： db.prepare('select * from topic').iterate({})
 
 
 // schema结构:
@@ -14,82 +27,61 @@ const randomBytes = utils.promisify(crypto.randomBytes);
 type TableSchemaType = { [tableName: string]: string[] };
 type LoggerType = { error: Function, info: Function, debug: Function };
 type RowType = { [columnName: string]: any };
-type EachCallbackType = (error: Error | null, row: RowType) => void;
-type SqlParam = { [$paramName: string]: any };
+type EachCallbackType = (row: RowType) => any | Promise<any>;
 
 interface IDbParam {
     dbFilePath: string,
     initSqlFiles: string[],
     tableSchema: TableSchemaType,
-    isDev: boolean,
+    verbose: boolean,
     logger?: LoggerType
 }
 
 class DB {
     /** @internal */
-    dbFilePath: string
-    /** @internal */
-    initSqlFiles: string[]
-    /** @internal */
     tableSchema: TableSchemaType
-    /** @internal */
-    isDev: boolean
     /** @internal */
     logger: LoggerType
     /** @internal */
-    db: Database;
+    db: typeof Database;
 
     constructor({
                     dbFilePath,
                     initSqlFiles = [],
                     tableSchema,
-                    isDev = false,
+                    verbose = false,
                     logger = undefined
                 }: IDbParam) {
-        this.dbFilePath = dbFilePath;
+
         this.tableSchema = tableSchema;
-        this.initSqlFiles = initSqlFiles;
-        // @ts-ignore
-        this.db = null;
-        this.isDev = isDev;
         this.logger = logger || {
             error: console.error,
             info: console.log,
             debug: console.log
         }
-    }
 
+        this.logger.debug('[init] file:' + dbFilePath)
 
-    async init() {
-        const sqlite = this.isDev ? sqlite3.verbose() : sqlite3;
-        const dbFilePath = this.dbFilePath;
-        const logger = this.logger;
-        logger.info('[init] file:' + dbFilePath)
-        const defer = utils.defer();
         try {
-            this.initSqlFiles.forEach((sqlFilePath) => {
+            initSqlFiles.forEach((sqlFilePath) => {
                 const cmd = `sqlite3 ${dbFilePath} < ${sqlFilePath}`;
-                logger.info('[init] exec init file:', sqlFilePath);
+                this.logger.info('[init] exec init file:', sqlFilePath);
                 execSync(cmd);
             })
-            logger.info('[init] exec init file success');
-            this.db = new sqlite.Database(dbFilePath, sqlite.OPEN_READWRITE, (err: Error | null) => {
-                if (err) {
-                    logger.error('[init] new sqlite3 error/', err.message, '/json:', JSON.stringify(err));
-                    defer.reject(err);
-                } else defer.resolve();
-            });
+            this.logger.info('[init] exec init file success');
+
+            this.db = new Database(dbFilePath, {verbose: verbose ? this.logger.info : null, fileMustExist: false});
+
+            this.logger.info('[init] new Database success');
 
             // process.on('SIGINT', () => { // pm2退出事件
             //
             // });
 
         } catch (e) {
-            logger.error('[init] error', e.message, 'json:', JSON.stringify(e));
-            defer.reject(e);
-
+            this.logger.error('[init] sqlite3 error', e.message, ',json:', JSON.stringify(e));
         }
-        return defer.promise;
+
     }
 
     modifySchema(schema: TableSchemaType) {
@@ -102,23 +94,25 @@ class DB {
     // suffix: 添加在where从句之后的内容，如果没有where从句就是直接添加在from从句之后，例如group by/ order/ limit
     /** @internal */
     generateSelectSql(tbName: string,
-                      param?: RowType,
+                      param?: RowType,  // 通过param生成where从句，传入null或undefined，视为搜索全部
                       excludeColumns: string[] = [],
                       pattern: string[] = [],
                       suffix = '') {
+
         const logger = this.logger;
-        // param 传入null或undefined，视为搜索全部
         const tbColumns = this.tableSchema[tbName];
         const selectColumns = excludeColumns.length ?
             tbColumns.filter(name => !excludeColumns.includes(name)) : tbColumns;
 
-        let values: SqlParam = {};
+        let validParam = {};
         let sql = `select ${selectColumns.join(',')} from ${tbName}`;
         if (param) {
-
+            // 筛选paramColumns为同时在tbColumns和param中的列。
             /** @type {String[]} **/
-            let paramColumns = tbColumns.filter(key => param[key] != null); // 筛选paramColumns为同时在tbColumns和param中的列。
+            let paramColumns = tbColumns.filter(key => param[key] != null);
             if (param.rowid) paramColumns.push('rowid');
+
+            validParam = utils.pick(param, paramColumns);
 
             if (paramColumns.length === 0) {
                 logger.error('[select] has no valid prop in param:', param, ';table:', tbName);
@@ -131,18 +125,15 @@ class DB {
                 }
                 return key + operator + '$' + key
             }).join(' and ');
-            paramColumns.forEach((key) => {
-                values['$' + key] = param[key];
-            })
         }
         sql += ' ' + suffix;
         return {
             sql,
-            param: values
+            param: validParam
         }
     }
 
-    async select(tbName: string,
+    select(tbName: string,
                  param?: RowType,
                  excludeColumns: string[] = [],
                  pattern: string[] = [],
@@ -155,14 +146,12 @@ class DB {
 
     /***
      * @param sql
-     * @param param - { [$paramName: string]: any } 这里param是直接传给sqlite.run的，是sql的参数，需要添加$前缀
+     * @param param
      */
-    async selectBySql(sql: string, param: SqlParam) {
+    selectBySql(sql: string, param?: RowType): Promise<RowType[]> {
         const logger = this.logger;
         logger.debug('[selectBySql] sql:', sql, `,sqlValues:`, param);
-        const defer = utils.defer() as Defer<RowType[]>;
-        this.db.all(sql, param, wrapNodeCb(defer));
-        return defer.promise;
+        return this.db.prepare(sql).all(param)
     }
 
     /**
@@ -185,15 +174,21 @@ class DB {
         return this.eachBySql(sqlObj.sql, sqlObj.param, eachCallback);
     }
 
-    async eachBySql(sql: string, param: SqlParam, eachCallback: EachCallbackType) {
+    /**
+     * 报错会导致遍历不继续进行，并返回rejected promise.
+     * @param sql
+     * @param param
+     * @param eachCallback
+     */
+    async eachBySql(sql: string, param: RowType | undefined, eachCallback: EachCallbackType) {
         const logger = this.logger;
         logger.debug('[each] sql:', sql, ',sqlValues:', param);
-        const defer = utils.defer() as Defer<number>;
-        this.db.each(sql, param, eachCallback, (error: Error | null, retrieveLength: number) => {
-            if (error) defer.reject(error);
-            else defer.resolve(retrieveLength);
-        })
-        return defer.promise;
+
+        const iterator = this.db.prepare(sql).iterate(param);
+
+        for (const row of iterator) {
+            await eachCallback(row);
+        }
     }
 
 
@@ -205,8 +200,7 @@ class DB {
         const sqlColumnsStr = paramColumns.join(',');
         const sqlValuesStr = paramColumns.map(c => '$' + c).join(',');
         let sql = `insert into ${tbName}(${sqlColumnsStr}) values(${sqlValuesStr})`;
-        const sqlParam: SqlParam = {};
-        paramColumns.forEach((c) => sqlParam['$' + c] = param[c]);
+        const sqlParam = utils.pick(param, paramColumns);
         return this.insertBySql(tbName, sql, sqlParam, needId);
     }
 
@@ -214,54 +208,42 @@ class DB {
      *
      * @param tbName
      * @param sql
-     * @param param - {$columnName:123} 这里param是直接传给sqlite的，是sql的参数，需要添加$前缀
+     * @param param
      * @param needId
-     * @return Promise<number> - 如果needId为true，返回id字段，如果needId为false,返回rowid字段
+     * @return {number} - 如果needId为true，返回id字段，如果needId为false,返回rowid字段
      */
-    insertBySql(tbName: string, sql: string, param: SqlParam, needId?: boolean) {
+    insertBySql(tbName: string, sql: string, param: RowType, needId?: boolean) {
         const logger = this.logger;
         logger.debug('[insertBySql]', tbName, sql, param, `needId:${needId}`);
-        const defer = utils.defer() as Defer<number>;
-        const db = this.db;
-        db.run(sql, param, function (this: RunResult, error: Error | null) {
-            if (error) {
-                logger.error('[insert] run error', sql, error.message, 'json:', JSON.stringify(error));
-                return defer.reject(error);
+        let info;
+        try {
+            info = this.db.prepare(sql).run(param);
+        } catch (e) {
+            logger.error('[insert] run error', sql, e.message, 'json:', JSON.stringify(e));
+            throw e;
+        }
+        let lastId = info.lastInsertRowid;
+        if (!lastId) throw new Error('SQL ERROR: the insert count is 0.');
+
+        if (needId) {
+            try {
+                const row = this.db.prepare(`select id from ${tbName} where rowid=$rowid`).get({rowid: lastId})
+                lastId = row.id;
+            } catch (e) {
+                logger.error('[insert] select error', e.message, 'json:', JSON.stringify(e));
+                throw e;
             }
-            const lastID = this.lastID;
-            if (!lastID) return defer.reject(new Error('SQL ERROR: the insert count is 0.'))
-            if (needId) {
-                db.get(`select id from ${tbName} where rowid=$rowid`, {$rowid: lastID}, function (error: Error | null, row: RowType) {
-                    //todo 和insert错误区分
-                    if (error) {
-                        logger.error('[insert] select error', error.message, 'json:', JSON.stringify(error));
-                        return defer.reject(error);
-                    }
-                    defer.resolve(row.id);
-                })
-            } else defer.resolve(lastID);
-        })
-        return defer.promise;
+        }
+        return lastId;
     }
 
+
     close() {
-        return new Promise((resolve, reject) => {
-            this.db.close((err: Error | null) => {
-                if (err) reject(err);
-                else resolve(undefined);
-            })
-        })
+        this.db.close();
     }
 
     genRandom() {
         return randomBytes(8).then((buffer: Buffer) => buffer.toString('hex'));
-    }
-}
-
-function wrapNodeCb<T>(defer: Defer<T>) {
-    return (err: Error | null, ...args: any[]) => {
-        if (err) defer.reject(err);
-        else defer.resolve(args.length > 1 ? args : args[0]);
     }
 }
 
