@@ -9,7 +9,7 @@ const db = new DB({
         table1: ['column1', 'column2'],
         t2: ['c1', 'c2', 'c3']
     },
-    isDev: false,
+    verbose: false,
     logger: {
         error: console.error,
         info: console.log,

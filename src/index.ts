@@ -1,7 +1,7 @@
 // import sqlite3, {Database, RunResult} from 'sqlite3';
 const Database = require('better-sqlite3');
 import {execSync} from 'child_process';
-import utils, {Defer} from 'relax-utils';
+import utils from 'relax-utils';
 import crypto from 'crypto';
 
 const randomBytes = utils.promisify(crypto.randomBytes);
@@ -17,6 +17,10 @@ const randomBytes = utils.promisify(crypto.randomBytes);
 // 当sql中没有参数时，statement相关的方法也不能传参数，否则会报错： RangeError: Too many parameter values were provided
 // 例如：db.prepare('select * from topic').iterate(undefined) 会报错
 // 要么不穿任何参数，要么写成： db.prepare('select * from topic').iterate({})
+
+// 还有一个天坑
+// better-sqlite3，参数不会做自动转换，只允许下面这些类型:
+// SQLite3 can only bind numbers, strings, bigints, buffers, and null
 
 
 // schema结构:
@@ -134,10 +138,10 @@ class DB {
     }
 
     select(tbName: string,
-                 param?: RowType,
-                 excludeColumns: string[] = [],
-                 pattern: string[] = [],
-                 suffix = '') {
+           param?: RowType,
+           excludeColumns: string[] = [],
+           pattern: string[] = [],
+           suffix = '') {
 
         let sqlObj = this.generateSelectSql(tbName, param, excludeColumns, pattern, suffix);
 

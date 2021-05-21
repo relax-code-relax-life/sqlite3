@@ -34,7 +34,7 @@
 
 **Returns:** [*export=*](export_.md)
 
-Defined in: [index.ts:46](https://github.com/relax-code-relax-life/sqlite3/blob/b563366/src/index.ts#L46)
+Defined in: [index.ts:50](https://github.com/relax-code-relax-life/sqlite3/blob/ecf1b8e/src/index.ts#L50)
 
 ## Methods
 
@@ -44,7 +44,7 @@ Defined in: [index.ts:46](https://github.com/relax-code-relax-life/sqlite3/blob/
 
 **Returns:** *void*
 
-Defined in: [index.ts:241](https://github.com/relax-code-relax-life/sqlite3/blob/b563366/src/index.ts#L241)
+Defined in: [index.ts:245](https://github.com/relax-code-relax-life/sqlite3/blob/ecf1b8e/src/index.ts#L245)
 
 ___
 
@@ -67,7 +67,7 @@ ___
 
 Promise<number> - 返回retrieveLength
 
-Defined in: [index.ts:167](https://github.com/relax-code-relax-life/sqlite3/blob/b563366/src/index.ts#L167)
+Defined in: [index.ts:171](https://github.com/relax-code-relax-life/sqlite3/blob/ecf1b8e/src/index.ts#L171)
 
 ___
 
@@ -87,7 +87,7 @@ ___
 
 **Returns:** *Promise*<void\>
 
-Defined in: [index.ts:183](https://github.com/relax-code-relax-life/sqlite3/blob/b563366/src/index.ts#L183)
+Defined in: [index.ts:187](https://github.com/relax-code-relax-life/sqlite3/blob/ecf1b8e/src/index.ts#L187)
 
 ___
 
@@ -97,7 +97,7 @@ ___
 
 **Returns:** *Promise*<string\>
 
-Defined in: [index.ts:245](https://github.com/relax-code-relax-life/sqlite3/blob/b563366/src/index.ts#L245)
+Defined in: [index.ts:249](https://github.com/relax-code-relax-life/sqlite3/blob/ecf1b8e/src/index.ts#L249)
 
 ___
 
@@ -115,7 +115,7 @@ ___
 
 **Returns:** *any*
 
-Defined in: [index.ts:196](https://github.com/relax-code-relax-life/sqlite3/blob/b563366/src/index.ts#L196)
+Defined in: [index.ts:200](https://github.com/relax-code-relax-life/sqlite3/blob/ecf1b8e/src/index.ts#L200)
 
 ___
 
@@ -136,7 +136,7 @@ ___
 
 - 如果needId为true，返回id字段，如果needId为false,返回rowid字段
 
-Defined in: [index.ts:215](https://github.com/relax-code-relax-life/sqlite3/blob/b563366/src/index.ts#L215)
+Defined in: [index.ts:219](https://github.com/relax-code-relax-life/sqlite3/blob/ecf1b8e/src/index.ts#L219)
 
 ___
 
@@ -152,7 +152,7 @@ ___
 
 **Returns:** *void*
 
-Defined in: [index.ts:87](https://github.com/relax-code-relax-life/sqlite3/blob/b563366/src/index.ts#L87)
+Defined in: [index.ts:91](https://github.com/relax-code-relax-life/sqlite3/blob/ecf1b8e/src/index.ts#L91)
 
 ___
 
@@ -172,7 +172,7 @@ ___
 
 **Returns:** *Promise*<RowType[]\>
 
-Defined in: [index.ts:136](https://github.com/relax-code-relax-life/sqlite3/blob/b563366/src/index.ts#L136)
+Defined in: [index.ts:140](https://github.com/relax-code-relax-life/sqlite3/blob/ecf1b8e/src/index.ts#L140)
 
 ___
 
@@ -189,4 +189,4 @@ ___
 
 **Returns:** *Promise*<RowType[]\>
 
-Defined in: [index.ts:151](https://github.com/relax-code-relax-life/sqlite3/blob/b563366/src/index.ts#L151)
+Defined in: [index.ts:155](https://github.com/relax-code-relax-life/sqlite3/blob/ecf1b8e/src/index.ts#L155)

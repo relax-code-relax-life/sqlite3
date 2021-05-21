@@ -11,7 +11,7 @@ const db = new DB({
         table1: ['column1', 'column2'],
         t2: ['c1', 'c2', 'c3']
     },
-    isDev: false,
+    verbose: false,
     logger: {
         error: console.error,
         info: console.log,
@@ -19,10 +19,8 @@ const db = new DB({
     }
 });
 
-db.init().then(async () => {
-    const rows = db.select('table1');
-    console.log(rows);
-})
+const rows = db.select('table1');
+console.log(rows);
 ```
 
 # Class DB
