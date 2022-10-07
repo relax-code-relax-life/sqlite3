@@ -1,73 +1,63 @@
-declare const Database: any;
-declare type TableSchemaType = {
-    [tableName: string]: string[];
-};
-declare type LoggerType = {
-    error: Function;
-    info: Function;
-    debug: Function;
-};
-declare type RowType = {
-    [columnName: string]: any;
-};
-declare type EachCallbackType = (row: RowType) => any | Promise<any>;
-interface IDbParam {
-    dbFilePath: string;
-    initSqlFiles: string[];
-    tableSchema: TableSchemaType;
-    verbose: boolean;
-    logger?: LoggerType;
+import Database from 'better-sqlite3';
+declare namespace DB {
+    type TLogger = {
+        error: (...args: any[]) => void;
+        info: (...args: any[]) => void;
+        debug: (...args: any[]) => void;
+    };
+    type TTableSchema = {
+        [tableName: string]: string[];
+    };
+    type TRowObj = {
+        [columnName: string]: any;
+    };
+    type TEachCallback = (row: TRowObj) => any | Promise<any>;
+    interface IDbParam {
+        dbFilePath: string;
+        initSqlFiles: string[];
+        tableSchema: TTableSchema;
+        verbose: boolean;
+        logger?: TLogger;
+    }
 }
 declare class DB {
     /** @internal */
-    tableSchema: TableSchemaType;
+    tableSchema: DB.TTableSchema;
     /** @internal */
-    logger: LoggerType;
+    logger: DB.TLogger;
     /** @internal */
-    db: typeof Database;
-    constructor({ dbFilePath, initSqlFiles, tableSchema, verbose, logger }: IDbParam);
-    modifySchema(schema: TableSchemaType): void;
+    db: Database.Database;
+    constructor({ dbFilePath, initSqlFiles, tableSchema, verbose, logger }: DB.IDbParam);
+    modifySchema(schema: DB.TTableSchema): void;
+    pragma(cmd: string): any;
     /** @internal */
-    generateSelectSql(tbName: string, param?: RowType, // 通过param生成where从句，传入null或undefined，视为搜索全部
+    generateSelectSql(tbName: string, param?: DB.TRowObj, // 通过param生成where从句，传入null或undefined，视为搜索全部
     excludeColumns?: string[], pattern?: string[], suffix?: string): {
         sql: string;
         param: {};
     };
-    select(tbName: string, param?: RowType, excludeColumns?: string[], pattern?: string[], suffix?: string): Promise<RowType[]>;
-    /***
-     * @param sql
-     * @param param
-     */
-    selectBySql(sql: string, param?: RowType): Promise<RowType[]>;
+    select(tbName: string, param?: DB.TRowObj, excludeColumns?: string[], pattern?: string[], suffix?: string): DB.TRowObj[];
+    selectBySql(sql: string, param?: DB.TRowObj): DB.TRowObj[];
     /**
-     *
-     * @param tbName
-     * @param eachCallback
-     * @param param
-     * @param excludeColumns
-     * @param pattern
-     * @param suffix
      * @return Promise<number> - 返回retrieveLength
      */
-    each(tbName: string, eachCallback: EachCallbackType, param?: RowType, excludeColumns?: string[], pattern?: string[], suffix?: string): Promise<void>;
+    each(tbName: string, eachCallback: DB.TEachCallback, param?: DB.TRowObj, excludeColumns?: string[], pattern?: string[], suffix?: string): Promise<void>;
     /**
      * 报错会导致遍历不继续进行，并返回rejected promise.
-     * @param sql
-     * @param param
-     * @param eachCallback
      */
-    eachBySql(sql: string, param: RowType | undefined, eachCallback: EachCallbackType): Promise<void>;
-    insert(tbName: string, param: RowType, needId?: boolean): any;
+    eachBySql(sql: string, param: DB.TRowObj | undefined, eachCallback: DB.TEachCallback): Promise<void>;
     /**
-     *
-     * @param tbName
-     * @param sql
-     * @param param
-     * @param needId
-     * @return {number} - 如果needId为true，返回id字段，如果needId为false,返回rowid字段
+     * param参数 示例: `{columnName:123}`
      */
-    insertBySql(tbName: string, sql: string, param: RowType, needId?: boolean): any;
+    insert<T extends boolean>(tbName: string, param: DB.TRowObj, needId?: T): T extends true ? any : number | bigint;
+    /**
+     * 如果needId为true，返回id字段，如果needId为false,返回rowid字段
+     */
+    insertBySql<T extends boolean>(tbName: string, sql: string, param: DB.TRowObj, needId?: T): T extends true ? any : number | bigint;
     close(): void;
-    genRandom(): Promise<string>;
+    /**
+     * 默认8字节。即生成16(8*2)个字符
+     */
+    genRandom(byteSize?: number): Promise<string>;
 }
 export = DB;

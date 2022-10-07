@@ -1,33 +1,25 @@
-[relax-sqlite3](README.md) / Exports
+[relax-sqlite3](../README.md) / [Exports](../modules.md) / export=
 
-# relax-sqlite3
+# Namespace: export=
 
 ## Table of contents
 
-### Namespaces
-
-- [export&#x3D;](modules/export_.md)
-
-### Classes
-
-- [export&#x3D;](classes/export_-1.md)
-
 ### Interfaces
 
-- [IDbParam](interfaces/IDbParam.md)
+- [IDbParam](../interfaces/export_.IDbParam.md)
 
 ### Type Aliases
 
-- [TEachCallback](modules.md#teachcallback)
-- [TLogger](modules.md#tlogger)
-- [TRowObj](modules.md#trowobj)
-- [TTableSchema](modules.md#ttableschema)
+- [TEachCallback](export_.md#teachcallback)
+- [TLogger](export_.md#tlogger)
+- [TRowObj](export_.md#trowobj)
+- [TTableSchema](export_.md#ttableschema)
 
 ## Type Aliases
 
 ### TEachCallback
 
-Ƭ **TEachCallback**: (`row`: [`TRowObj`](modules/export_.md#trowobj)) => `any` \| `Promise`<`any`\>
+Ƭ **TEachCallback**: (`row`: [`TRowObj`](export_.md#trowobj)) => `any` \| `Promise`<`any`\>
 
 #### Type declaration
 
@@ -37,7 +29,7 @@
 
 | Name | Type |
 | :------ | :------ |
-| `row` | [`TRowObj`](modules/export_.md#trowobj) |
+| `row` | [`TRowObj`](export_.md#trowobj) |
 
 ##### Returns
 

@@ -1,5 +1,4 @@
-// import sqlite3, {Database, RunResult} from 'sqlite3';
-const Database = require('better-sqlite3');
+import Database from 'better-sqlite3';
 import {execSync} from 'child_process';
 import utils from 'relax-utils';
 import crypto from 'crypto';
@@ -23,31 +22,38 @@ const randomBytes = utils.promisify(crypto.randomBytes);
 // SQLite3 can only bind numbers, strings, bigints, buffers, and null
 
 
+namespace DB {
+    export type TLogger = {
+        error: (...args: any[]) => void,
+        info: (...args: any[]) => void,
+        debug: (...args: any[]) => void
+    };
 // schema结构:
 //  {
 //      [tableName:string]: string[]  // column名称数组
 //  }
+    export type TTableSchema = { [tableName: string]: string[] };
+    export type TRowObj = { [columnName: string]: any };
+    export type TEachCallback = (row: TRowObj) => any | Promise<any>;
 
-type TableSchemaType = { [tableName: string]: string[] };
-type LoggerType = { error: Function, info: Function, debug: Function };
-type RowType = { [columnName: string]: any };
-type EachCallbackType = (row: RowType) => any | Promise<any>;
-
-interface IDbParam {
-    dbFilePath: string,
-    initSqlFiles: string[],
-    tableSchema: TableSchemaType,
-    verbose: boolean,
-    logger?: LoggerType
+    export interface IDbParam {
+        dbFilePath: string,
+        initSqlFiles: string[],
+        tableSchema: TTableSchema,
+        verbose: boolean,
+        logger?: TLogger
+    }
 }
+
+
 
 class DB {
     /** @internal */
-    tableSchema: TableSchemaType
+    tableSchema: DB.TTableSchema
     /** @internal */
-    logger: LoggerType
+    logger: DB.TLogger
     /** @internal */
-    db: typeof Database;
+    db: Database.Database;
 
     constructor({
                     dbFilePath,
@@ -55,7 +61,7 @@ class DB {
                     tableSchema,
                     verbose = false,
                     logger = undefined
-                }: IDbParam) {
+                }: DB.IDbParam) {
 
         this.tableSchema = tableSchema;
         this.logger = logger || {
@@ -74,7 +80,10 @@ class DB {
             })
             this.logger.info('[init] exec init file success');
 
-            this.db = new Database(dbFilePath, {verbose: verbose ? this.logger.info : null, fileMustExist: false});
+            this.db = new Database(dbFilePath, {
+                verbose: verbose ? this.logger.info : undefined,
+                fileMustExist: false
+            });
 
             this.logger.info('[init] new Database success');
 
@@ -84,12 +93,17 @@ class DB {
 
         } catch (e) {
             this.logger.error('[init] sqlite3 error', e.message, ',json:', JSON.stringify(e));
+            throw e;
         }
 
     }
 
-    modifySchema(schema: TableSchemaType) {
+    modifySchema(schema: DB.TTableSchema) {
         Object.assign(this.tableSchema, schema);
+    }
+
+    pragma(cmd: string) {
+        return this.db.pragma(cmd);
     }
 
     // param: { columnName: '123' }
@@ -98,37 +112,38 @@ class DB {
     // suffix: 添加在where从句之后的内容，如果没有where从句就是直接添加在from从句之后，例如group by/ order/ limit
     /** @internal */
     generateSelectSql(tbName: string,
-                      param?: RowType,  // 通过param生成where从句，传入null或undefined，视为搜索全部
+                      param?: DB.TRowObj,  // 通过param生成where从句，传入null或undefined，视为搜索全部
                       excludeColumns: string[] = [],
                       pattern: string[] = [],
                       suffix = '') {
 
         const logger = this.logger;
         const tbColumns = this.tableSchema[tbName];
-        const selectColumns = excludeColumns.length ?
+        const selectColumns = excludeColumns?.length ?
             tbColumns.filter(name => !excludeColumns.includes(name)) : tbColumns;
 
         let validParam = {};
         let sql = `select ${selectColumns.join(',')} from ${tbName}`;
         if (param) {
             // 筛选paramColumns为同时在tbColumns和param中的列。
-            /** @type {String[]} **/
             let paramColumns = tbColumns.filter(key => param[key] != null);
             if (param.rowid) paramColumns.push('rowid');
-
-            validParam = utils.pick(param, paramColumns);
 
             if (paramColumns.length === 0) {
                 logger.error('[select] has no valid prop in param:', param, ';table:', tbName);
                 throw new Error('SQL ERROR: has no valid prop in param');
             }
-            sql += ' where ' + paramColumns.map(key => {
+
+            sql += ' where ';
+            sql += paramColumns.map(key => {
                 let operator = ' = ';
                 if (pattern.includes(key)) {
                     operator = ' like ';
                 }
                 return key + operator + '$' + key
             }).join(' and ');
+
+            validParam = utils.pick(param, paramColumns);
         }
         sql += ' ' + suffix;
         return {
@@ -138,7 +153,7 @@ class DB {
     }
 
     select(tbName: string,
-           param?: RowType,
+           param?: DB.TRowObj,
            excludeColumns: string[] = [],
            pattern: string[] = [],
            suffix = '') {
@@ -148,29 +163,18 @@ class DB {
         return this.selectBySql(sqlObj.sql, sqlObj.param);
     }
 
-    /***
-     * @param sql
-     * @param param
-     */
-    selectBySql(sql: string, param?: RowType): Promise<RowType[]> {
+    selectBySql(sql: string, param?: DB.TRowObj): DB.TRowObj[] {
         const logger = this.logger;
         logger.debug('[selectBySql] sql:', sql, `,sqlValues:`, param);
         return this.db.prepare(sql).all(param)
     }
 
     /**
-     *
-     * @param tbName
-     * @param eachCallback
-     * @param param
-     * @param excludeColumns
-     * @param pattern
-     * @param suffix
      * @return Promise<number> - 返回retrieveLength
      */
     async each(tbName: string,
-               eachCallback: EachCallbackType,
-               param?: RowType,
+               eachCallback: DB.TEachCallback,
+               param?: DB.TRowObj,
                excludeColumns: string[] = [],
                pattern: string[] = [],
                suffix = '') {
@@ -180,11 +184,8 @@ class DB {
 
     /**
      * 报错会导致遍历不继续进行，并返回rejected promise.
-     * @param sql
-     * @param param
-     * @param eachCallback
      */
-    async eachBySql(sql: string, param: RowType | undefined, eachCallback: EachCallbackType) {
+    async eachBySql(sql: string, param: DB.TRowObj | undefined, eachCallback: DB.TEachCallback) {
         const logger = this.logger;
         logger.debug('[each] sql:', sql, ',sqlValues:', param);
 
@@ -196,8 +197,10 @@ class DB {
     }
 
 
-    // param: {columnName:123}
-    insert(tbName: string, param: RowType, needId = false) {
+    /**
+     * param参数 示例: `{columnName:123}`
+     */
+    insert<T extends boolean>(tbName: string, param: DB.TRowObj, needId?: T) {
         const logger = this.logger;
         logger.debug('[insert]', tbName, param, `needId:${needId}`);
         const paramColumns = this.tableSchema[tbName].filter(c => param[c] != null);
@@ -209,14 +212,10 @@ class DB {
     }
 
     /**
-     *
-     * @param tbName
-     * @param sql
-     * @param param
-     * @param needId
-     * @return {number} - 如果needId为true，返回id字段，如果needId为false,返回rowid字段
+     * 如果needId为true，返回id字段，如果needId为false,返回rowid字段
      */
-    insertBySql(tbName: string, sql: string, param: RowType, needId?: boolean) {
+    insertBySql<T extends boolean>(tbName: string, sql: string, param: DB.TRowObj, needId?: T):
+        T extends true ? any : number | bigint {
         const logger = this.logger;
         logger.debug('[insertBySql]', tbName, sql, param, `needId:${needId}`);
         let info;
@@ -246,7 +245,10 @@ class DB {
         this.db.close();
     }
 
-    genRandom() {
+    /**
+     * 默认8字节。即生成16(8*2)个字符
+     */
+    genRandom(byteSize = 8) {
         return randomBytes(8).then((buffer: Buffer) => buffer.toString('hex'));
     }
 }

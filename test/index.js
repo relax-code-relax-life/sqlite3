@@ -28,6 +28,13 @@ const db = new DB({
 (async function () {
     assert.ok(fs.existsSync(dbFilePath), 'db init error');
 
+    const tableInfo = db.pragma('table_info(topic)');
+    assert.deepStrictEqual(tableInfo, [
+        {cid: 0, name: 'id', type: 'TEXT', notnull: 1, dflt_value: 'hex(randomblob(8))', pk: 1},
+        {cid: 1, name: 'name', type: 'TEXT', notnull: 1, dflt_value: null, pk: 0},
+        {cid: 2, name: 'note', type: 'TEXT', notnull: 0, dflt_value: null, pk: 0},
+    ], 'pragma table_info(topic) error');
+
     const insert1 = db.insert('topic', {id: '666', name: 'wwl', note: 'no.1'});
     assert.strictEqual(insert1, 1, 'insert1 error');
 
@@ -35,7 +42,7 @@ const db = new DB({
     assert.strictEqual(insert2, '6', 'insert1 error');
 
     /*
-    * number 到 text转换问题
+    * number 到 text转换问题, 如果列声明为text，传入number，则 number -> real -> string
     * https://github.com/JoshuaWise/better-sqlite3/issues/627
     * */
     const insert3 = db.insert('topic', {id: 5, name: 'wwl', note: 'no.1'}, true);
@@ -72,7 +79,6 @@ const db = new DB({
     /*
     * boolean
     * */
-
     assert.throws(() => {
         db.insert('topic', {id: '11', name: 'boolean test', note: true});
     }, TypeError, 'check boolean convert');
