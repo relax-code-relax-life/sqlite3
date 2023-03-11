@@ -31,6 +31,11 @@ declare class DB {
     modifySchema(schema: DB.TTableSchema): void;
     pragma(cmd: string): any;
     /** @internal */
+    generateWhereClause(tbName: string, param: DB.TRowObj, pattern?: string[]): {
+        clause: string;
+        validParam: {} | Pick<DB.TRowObj, string | number>;
+    };
+    /** @internal */
     generateSelectSql(tbName: string, param?: DB.TRowObj, // 通过param生成where从句，传入null或undefined，视为搜索全部
     excludeColumns?: string[], pattern?: string[], suffix?: string): {
         sql: string;
@@ -54,6 +59,8 @@ declare class DB {
      * 如果needId为true，返回id字段，如果needId为false,返回rowid字段
      */
     insertBySql<T extends boolean>(tbName: string, sql: string, param: DB.TRowObj, needId?: T): T extends true ? any : number | bigint;
+    update(tbName: string, setValues: DB.TRowObj, whereParam?: DB.TRowObj | string, suffix?: string, pattern?: string[]): Database.RunResult;
+    delete(tbName: string, whereParam?: DB.TRowObj | string, suffix?: string, pattern?: string[]): Database.RunResult;
     close(): void;
     /**
      * 默认8字节。即生成16(8*2)个字符

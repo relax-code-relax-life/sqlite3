@@ -22,7 +22,7 @@
 
 #### Defined in
 
-[index.ts:40](https://github.com/relax-code-relax-life/sqlite3/blob/08533a5/src/index.ts#L40)
+[index.ts:40](https://github.com/relax-code-relax-life/sqlite3/blob/c5d69b1/src/index.ts#L40)
 
 ___
 
@@ -32,7 +32,7 @@ ___
 
 #### Defined in
 
-[index.ts:41](https://github.com/relax-code-relax-life/sqlite3/blob/08533a5/src/index.ts#L41)
+[index.ts:41](https://github.com/relax-code-relax-life/sqlite3/blob/c5d69b1/src/index.ts#L41)
 
 ___
 
@@ -42,7 +42,7 @@ ___
 
 #### Defined in
 
-[index.ts:44](https://github.com/relax-code-relax-life/sqlite3/blob/08533a5/src/index.ts#L44)
+[index.ts:44](https://github.com/relax-code-relax-life/sqlite3/blob/c5d69b1/src/index.ts#L44)
 
 ___
 
@@ -52,7 +52,7 @@ ___
 
 #### Defined in
 
-[index.ts:42](https://github.com/relax-code-relax-life/sqlite3/blob/08533a5/src/index.ts#L42)
+[index.ts:42](https://github.com/relax-code-relax-life/sqlite3/blob/c5d69b1/src/index.ts#L42)
 
 ___
 
@@ -62,4 +62,4 @@ ___
 
 #### Defined in
 
-[index.ts:43](https://github.com/relax-code-relax-life/sqlite3/blob/08533a5/src/index.ts#L43)
+[index.ts:43](https://github.com/relax-code-relax-life/sqlite3/blob/c5d69b1/src/index.ts#L43)

@@ -83,5 +83,26 @@ const db = new DB({
         db.insert('topic', {id: '11', name: 'boolean test', note: true});
     }, TypeError, 'check boolean convert');
 
+    // region update/delete
+    const rowId = db.insert('topic', {id: 'testInsert', name: 'test_insert_name', note: ''});
+    const updateInfo = db.update('topic', {id: 'testUpdate'}, {rowid: rowId});
+
+    assert.deepStrictEqual(updateInfo, {
+        changes: 1,
+        lastInsertRowid: rowId
+    }, 'update return info error');
+
+    const updateRow = db.select('topic', {rowid: rowId});
+    assert.strictEqual(updateRow[0].id, 'testUpdate', 'update set value error');
+
+    const delInfo = db.delete('topic', {id: 'testUpdate'});
+    assert.deepStrictEqual(delInfo, {
+        changes: 1,
+        lastInsertRowid: rowId
+    }, 'delete return info error');
+
+    const selectDelRows = db.select('topic', {id: 'testUpdate'});
+    assert.strictEqual(selectDelRows.length, 0, 'delete error');
+    // endregion
 
 })()

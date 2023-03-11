@@ -11,6 +11,7 @@
 ### Methods
 
 - [close](export_-1.md#close)
+- [delete](export_-1.md#delete)
 - [each](export_-1.md#each)
 - [eachBySql](export_-1.md#eachbysql)
 - [genRandom](export_-1.md#genrandom)
@@ -20,6 +21,7 @@
 - [pragma](export_-1.md#pragma)
 - [select](export_-1.md#select)
 - [selectBySql](export_-1.md#selectbysql)
+- [update](export_-1.md#update)
 
 ## Constructors
 
@@ -35,7 +37,7 @@
 
 #### Defined in
 
-[index.ts:58](https://github.com/relax-code-relax-life/sqlite3/blob/08533a5/src/index.ts#L58)
+[index.ts:57](https://github.com/relax-code-relax-life/sqlite3/blob/c5d69b1/src/index.ts#L57)
 
 ## Methods
 
@@ -49,7 +51,30 @@
 
 #### Defined in
 
-[index.ts:244](https://github.com/relax-code-relax-life/sqlite3/blob/08533a5/src/index.ts#L244)
+[index.ts:328](https://github.com/relax-code-relax-life/sqlite3/blob/c5d69b1/src/index.ts#L328)
+
+___
+
+### delete
+
+▸ **delete**(`tbName`, `whereParam?`, `suffix?`, `pattern?`): `RunResult`
+
+#### Parameters
+
+| Name | Type | Default value |
+| :------ | :------ | :------ |
+| `tbName` | `string` | `undefined` |
+| `whereParam?` | `string` \| [`TRowObj`](../modules/export_.md#trowobj) | `undefined` |
+| `suffix` | `string` | `''` |
+| `pattern` | `string`[] | `[]` |
+
+#### Returns
+
+`RunResult`
+
+#### Defined in
+
+[index.ts:300](https://github.com/relax-code-relax-life/sqlite3/blob/c5d69b1/src/index.ts#L300)
 
 ___
 
@@ -76,7 +101,7 @@ Promise<number> - 返回retrieveLength
 
 #### Defined in
 
-[index.ts:175](https://github.com/relax-code-relax-life/sqlite3/blob/08533a5/src/index.ts#L175)
+[index.ts:189](https://github.com/relax-code-relax-life/sqlite3/blob/c5d69b1/src/index.ts#L189)
 
 ___
 
@@ -100,7 +125,7 @@ ___
 
 #### Defined in
 
-[index.ts:188](https://github.com/relax-code-relax-life/sqlite3/blob/08533a5/src/index.ts#L188)
+[index.ts:202](https://github.com/relax-code-relax-life/sqlite3/blob/c5d69b1/src/index.ts#L202)
 
 ___
 
@@ -122,7 +147,7 @@ ___
 
 #### Defined in
 
-[index.ts:251](https://github.com/relax-code-relax-life/sqlite3/blob/08533a5/src/index.ts#L251)
+[index.ts:335](https://github.com/relax-code-relax-life/sqlite3/blob/c5d69b1/src/index.ts#L335)
 
 ___
 
@@ -152,7 +177,7 @@ param参数 示例: `{columnName:123}`
 
 #### Defined in
 
-[index.ts:203](https://github.com/relax-code-relax-life/sqlite3/blob/08533a5/src/index.ts#L203)
+[index.ts:217](https://github.com/relax-code-relax-life/sqlite3/blob/c5d69b1/src/index.ts#L217)
 
 ___
 
@@ -183,7 +208,7 @@ ___
 
 #### Defined in
 
-[index.ts:217](https://github.com/relax-code-relax-life/sqlite3/blob/08533a5/src/index.ts#L217)
+[index.ts:231](https://github.com/relax-code-relax-life/sqlite3/blob/c5d69b1/src/index.ts#L231)
 
 ___
 
@@ -203,7 +228,7 @@ ___
 
 #### Defined in
 
-[index.ts:101](https://github.com/relax-code-relax-life/sqlite3/blob/08533a5/src/index.ts#L101)
+[index.ts:100](https://github.com/relax-code-relax-life/sqlite3/blob/c5d69b1/src/index.ts#L100)
 
 ___
 
@@ -223,7 +248,7 @@ ___
 
 #### Defined in
 
-[index.ts:105](https://github.com/relax-code-relax-life/sqlite3/blob/08533a5/src/index.ts#L105)
+[index.ts:104](https://github.com/relax-code-relax-life/sqlite3/blob/c5d69b1/src/index.ts#L104)
 
 ___
 
@@ -247,7 +272,7 @@ ___
 
 #### Defined in
 
-[index.ts:155](https://github.com/relax-code-relax-life/sqlite3/blob/08533a5/src/index.ts#L155)
+[index.ts:169](https://github.com/relax-code-relax-life/sqlite3/blob/c5d69b1/src/index.ts#L169)
 
 ___
 
@@ -268,4 +293,28 @@ ___
 
 #### Defined in
 
-[index.ts:166](https://github.com/relax-code-relax-life/sqlite3/blob/08533a5/src/index.ts#L166)
+[index.ts:180](https://github.com/relax-code-relax-life/sqlite3/blob/c5d69b1/src/index.ts#L180)
+
+___
+
+### update
+
+▸ **update**(`tbName`, `setValues`, `whereParam?`, `suffix?`, `pattern?`): `RunResult`
+
+#### Parameters
+
+| Name | Type | Default value |
+| :------ | :------ | :------ |
+| `tbName` | `string` | `undefined` |
+| `setValues` | [`TRowObj`](../modules/export_.md#trowobj) | `undefined` |
+| `whereParam?` | `string` \| [`TRowObj`](../modules/export_.md#trowobj) | `undefined` |
+| `suffix` | `string` | `''` |
+| `pattern` | `string`[] | `[]` |
+
+#### Returns
+
+`RunResult`
+
+#### Defined in
+
+[index.ts:257](https://github.com/relax-code-relax-life/sqlite3/blob/c5d69b1/src/index.ts#L257)

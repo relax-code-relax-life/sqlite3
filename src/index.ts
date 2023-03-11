@@ -46,7 +46,6 @@ namespace DB {
 }
 
 
-
 class DB {
     /** @internal */
     tableSchema: DB.TTableSchema
@@ -106,6 +105,37 @@ class DB {
         return this.db.pragma(cmd);
     }
 
+    /** @internal */
+    generateWhereClause(tbName: string,
+                        param: DB.TRowObj,
+                        pattern: string[] = []) {
+        const logger = this.logger;
+        const tbColumns = this.tableSchema[tbName];
+
+        // 筛选paramColumns为同时在tbColumns和param中的列。
+        let paramColumns = tbColumns.filter(key => param[key] != null);
+        if (param.rowid) paramColumns.push('rowid');
+        if (paramColumns.length === 0) {
+            logger.error('[select] has no valid prop in param:', param, ';table:', tbName);
+            throw new Error('SQL ERROR: has no valid prop in param');
+        }
+
+        let clause = 'where ';
+        clause += paramColumns.map(key => {
+            let operator = ' = ';
+            if (pattern.includes(key)) {
+                operator = ' like ';
+            }
+            return key + operator + '$' + key
+        }).join(' and ');
+
+        const validParam = utils.pick(param, paramColumns);
+        return {
+            clause,
+            validParam
+        }
+    }
+
     // param: { columnName: '123' }
     // pattern matching: 模糊查询。 pattern参数为string[]，模糊查询的列。
     // excludeColumns: string[], select排除的列
@@ -125,25 +155,9 @@ class DB {
         let validParam = {};
         let sql = `select ${selectColumns.join(',')} from ${tbName}`;
         if (param) {
-            // 筛选paramColumns为同时在tbColumns和param中的列。
-            let paramColumns = tbColumns.filter(key => param[key] != null);
-            if (param.rowid) paramColumns.push('rowid');
-
-            if (paramColumns.length === 0) {
-                logger.error('[select] has no valid prop in param:', param, ';table:', tbName);
-                throw new Error('SQL ERROR: has no valid prop in param');
-            }
-
-            sql += ' where ';
-            sql += paramColumns.map(key => {
-                let operator = ' = ';
-                if (pattern.includes(key)) {
-                    operator = ' like ';
-                }
-                return key + operator + '$' + key
-            }).join(' and ');
-
-            validParam = utils.pick(param, paramColumns);
+            const whereClauseResult = this.generateWhereClause(tbName, param, pattern);
+            sql += ' ' + whereClauseResult.clause;
+            validParam = whereClauseResult.validParam;
         }
         sql += ' ' + suffix;
         return {
@@ -240,6 +254,76 @@ class DB {
         return lastId;
     }
 
+    update(tbName: string, setValues: DB.TRowObj, whereParam?: DB.TRowObj | string, suffix: string = '', pattern: string[] = []) {
+        const logger = this.logger;
+        logger.debug('[update]', tbName, whereParam, setValues, suffix, pattern);
+
+        let param: DB.TRowObj = {};
+
+        const tbSchema = this.tableSchema[tbName];
+        let sql = 'update ' + tbName + ' set ';
+
+        const validSetColumns = tbSchema.filter(c => setValues[c] != null);
+        if (validSetColumns.length === 0) {
+            logger.error('[update] has no valid column in setValues:', setValues, ';table:', tbName);
+            throw new Error('SQL ERROR: has no valid column in setValues');
+        }
+
+        sql += validSetColumns.map(c => c + ' = $set' + c).join(', ');
+        validSetColumns.forEach(c => {
+            param['set' + c] = setValues[c];
+        })
+
+        if (!whereParam) {
+
+        } else if (typeof whereParam === 'string') {
+            sql += ' ' + whereParam;
+        } else {
+            const whereClauseResult = this.generateWhereClause(tbName, whereParam, pattern);
+            sql += ' ' + whereClauseResult.clause;
+            Object.assign(param, whereClauseResult.validParam);
+        }
+
+        if (suffix) {
+            sql += ' ' + suffix;
+        }
+
+        logger.debug('[update] sql:', sql, 'param:', param);
+        try {
+            return this.db.prepare(sql).run(param);
+        } catch (e) {
+            logger.error('[update] run error', sql, e.message, 'json:', JSON.stringify(e));
+            throw e;
+        }
+    }
+
+    delete(tbName: string, whereParam?: DB.TRowObj | string, suffix: string = '', pattern: string[] = []) {
+        const logger = this.logger;
+        logger.debug('[delete]', tbName, whereParam, suffix, pattern);
+
+        let param = {};
+
+        let sql = 'delete from ' + tbName;
+        if (!whereParam) {
+
+        } else if (typeof whereParam === 'string') {
+            sql += ' ' + whereParam;
+        } else {
+            const whereClauseResult = this.generateWhereClause(tbName, whereParam, pattern);
+            sql += ' ' + whereClauseResult.clause;
+            Object.assign(param, whereClauseResult.validParam);
+        }
+
+        if (suffix) sql += ' ' + suffix;
+
+        logger.debug('[delete] sql:', sql, 'param:', param);
+        try {
+            return this.db.prepare(sql).run(param);
+        } catch (e) {
+            logger.error('[delete] run error', sql, e.message, 'json:', JSON.stringify(e));
+            throw e;
+        }
+    }
 
     close() {
         this.db.close();

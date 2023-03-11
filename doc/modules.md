@@ -45,7 +45,7 @@
 
 #### Defined in
 
-[index.ts:37](https://github.com/relax-code-relax-life/sqlite3/blob/08533a5/src/index.ts#L37)
+[index.ts:37](https://github.com/relax-code-relax-life/sqlite3/blob/c5d69b1/src/index.ts#L37)
 
 ___
 
@@ -63,7 +63,7 @@ ___
 
 #### Defined in
 
-[index.ts:26](https://github.com/relax-code-relax-life/sqlite3/blob/08533a5/src/index.ts#L26)
+[index.ts:26](https://github.com/relax-code-relax-life/sqlite3/blob/c5d69b1/src/index.ts#L26)
 
 ___
 
@@ -77,7 +77,7 @@ ___
 
 #### Defined in
 
-[index.ts:36](https://github.com/relax-code-relax-life/sqlite3/blob/08533a5/src/index.ts#L36)
+[index.ts:36](https://github.com/relax-code-relax-life/sqlite3/blob/c5d69b1/src/index.ts#L36)
 
 ___
 
@@ -91,4 +91,4 @@ ___
 
 #### Defined in
 
-[index.ts:35](https://github.com/relax-code-relax-life/sqlite3/blob/08533a5/src/index.ts#L35)
+[index.ts:35](https://github.com/relax-code-relax-life/sqlite3/blob/c5d69b1/src/index.ts#L35)
